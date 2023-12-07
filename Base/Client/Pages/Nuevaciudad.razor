@@ -1,0 +1,58 @@
+﻿@page "/nuevaciudad"
+@page "/nuevaciudad/{Id:int}"
+@inject HttpClient _http;
+@inject NavigationManager _navegadorciudad;
+
+<h3>@letrero Ciudad</h3>
+
+<EditForm Model="laciudad" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="mb-3 row">
+        <label for="txtNombredeciudad" class="col-sm-2 col-form-label">Nombre de la ciudad</label>
+        <div class="col-sm-10">
+            <InputText id="txtNombredeciudad" class="form-control" @bind-Value="laciudad.Nombredeciudad" />
+            <ValidationMessage For="()=>laciudad.Nombredeciudad" />
+        </div>
+    </div>
+    <button class="btn btn-success" type="submit">Guardar</button>
+    <button class="btn btn-danger" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Ciudad laciudad = new();
+    private string letrero = "Nueva";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            letrero = "Nueva";
+            laciudad = new();
+        }
+        else
+        {
+            letrero = "Modificar";
+            laciudad = await _http.GetFromJsonAsync<Ciudad>($"api/ciudades/{Id}");
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id == 0)
+        {
+            await _http.PostAsJsonAsync<Ciudad>("api/ciudades", laciudad);
+        }
+        else
+        {
+            await _http.PutAsJsonAsync<Ciudad>($"api/ciudades/{Id}", laciudad);
+        }
+        _navegadorciudad.NavigateTo("/ciudades");
+    }
+
+    private void Cancelar()
+    {
+        _navegadorciudad.NavigateTo("/ciudades");
+    }
+}

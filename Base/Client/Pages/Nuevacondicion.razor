@@ -1,0 +1,58 @@
+﻿@page "/nuevacondicion"
+@page "/nuevacondicion/{Id:int}"
+@inject HttpClient _http;
+@inject NavigationManager _navegadorcondiciones;
+
+<h3>@letrero Condiciones</h3>
+
+<EditForm Model="lacondicion" OnValidSubmit="Guardar">
+    <DataAnnotationsValidator />
+    <div class="mb-3 row">
+        <label for="txtEstadodelcarro" class="col-sm-2 col-form-label">Estado del carro</label>
+        <div class="col-sm-10">
+            <InputText id="txtEstadodelcarro" class="form-control" @bind-Value="lacondicion.Estadodelcarro" />
+            <ValidationMessage For="()=>lacondicion.Estadodelcarro" />
+        </div>
+    </div>
+    <button class="btn btn-success" type="submit">Guardar</button>
+    <button class="btn btn-danger" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private Condicion lacondicion = new();
+    private string letrero = "Nueva";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            letrero = "Nueva";
+            lacondicion = new();
+        }
+        else
+        {
+            letrero = "Modificar";
+            lacondicion = await _http.GetFromJsonAsync<Condicion>($"api/condiciones/{Id}");
+        }
+    }
+
+    private async void Guardar()
+    {
+        if (Id == 0)
+        {
+            await _http.PostAsJsonAsync<Condicion>("api/condiciones", lacondicion);
+        }
+        else
+        {
+            await _http.PutAsJsonAsync<Condicion>($"api/condiciones/{Id}", lacondicion);
+        }
+        _navegadorcondiciones.NavigateTo("/condiciones");
+    }
+
+    private void Cancelar()
+    {
+        _navegadorcondiciones.NavigateTo("/condicion");
+    }
+}

@@ -1,0 +1,73 @@
+﻿@page "/ciudades"
+@inject HttpClient _http;
+@inject NavigationManager _navegarciudad;
+
+<h3>Ciudades</h3>
+
+@if (cargando)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else
+{
+    @if (lasciudades.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Fecha de entrada</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Ciudad ciudades in lasciudades)
+                {
+                    <tr>
+                        <td>@ciudades.Nombredeciudad</td>
+                        <td>
+                            <button class="btn btn-sm" @onclick="()=>Eliminar(ciudades.Id)"><span class="oi oi-trash"></span></button>
+                            <button class="btn btn-sm" @onclick="()=>Modificar(ciudades.Id)"><span class="oi oi-pencil"></span></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h2>No existen ciudades registradas</h2>
+    }
+}
+
+
+@code {
+    private List<Ciudad> lasciudades = new();
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        lasciudades = await _http.GetFromJsonAsync<List<Ciudad>>("api/ciudades");
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        cargando = true;
+        await _http.DeleteAsync($"api/ciudades/{id}");
+        await Cargar();
+    }
+
+    private void Modificar(int id)
+    {
+        _navegarciudad.NavigateTo($"/nuevaciudad/{id}");
+    }
+}

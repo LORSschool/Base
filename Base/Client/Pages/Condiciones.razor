@@ -1,0 +1,73 @@
+﻿@page "/condiciones"
+@inject HttpClient _http;
+@inject NavigationManager _navegarcondiciones;
+
+<h3>Condiciones</h3>
+
+@if (cargando)
+{
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Cargando...</span>
+    </div>
+}
+else
+{
+    @if (lascondiciones.Count > 0)
+    {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cantidad</th>
+                    <th>Fecha de entrada</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (Condicion condiciones in lascondiciones)
+                {
+                    <tr>
+                        <td>@condiciones.Estadodelcarro</td>
+                        <td>
+                            <button class="btn btn-sm" @onclick="()=>Eliminar(condiciones.Id)"><span class="oi oi-trash"></span></button>
+                            <button class="btn btn-sm" @onclick="()=>Modificar(condiciones.Id)"><span class="oi oi-pencil"></span></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <h2>No existen condiciones registradas</h2>
+    }
+}
+
+
+@code {
+    private List<Condicion> lascondiciones = new();
+    private bool cargando = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        lascondiciones = await _http.GetFromJsonAsync<List<Condicion>>("api/condiciones");
+        cargando = false;
+    }
+
+    private async Task Eliminar(int id)
+    {
+        cargando = true;
+        await _http.DeleteAsync($"api/condiciones/{id}");
+        await Cargar();
+    }
+
+    private void Modificar(int id)
+    {
+        _navegarcondiciones.NavigateTo($"/nuevacondicion/{id}");
+    }
+}
